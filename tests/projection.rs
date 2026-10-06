@@ -285,3 +285,30 @@ async fn a_store_from_before_disk_tracking_takes_a_missing_file_for_a_deletion()
     session(dir.path(), async |ws, _| assert!(live(ws).await.is_empty())).await;
     assert!(!dir.path().join("old.md").exists());
 }
+
+/// macOS reaches temporary folders through /var, a symlink to /private/var; a vault can sit
+/// behind a symlink anywhere. The watcher then reports paths the canonical root does not prefix.
+#[cfg(unix)]
+#[tokio::test]
+async fn events_reported_through_a_symlink_of_the_root_are_seen() {
+    let real = TempDir::new().unwrap();
+    let links = TempDir::new().unwrap();
+    let link = links.path().join("vault");
+    std::os::unix::fs::symlink(real.path(), &link).unwrap();
+    let ws = Workspace::open(&link).await.unwrap();
+    let projector = Projector::new(ws.clone());
+    std::fs::write(link.join("note.md"), "through the link").unwrap();
+    projector
+        .handle_fs_event(&notify::Event {
+            kind: EventKind::Create(notify::event::CreateKind::File),
+            paths: vec![link.join("note.md")],
+            attrs: Default::default(),
+        })
+        .await
+        .unwrap();
+    let id = ws
+        .get_doc_id_by_path("note.md")
+        .await
+        .expect("imported doc");
+    assert_eq!(ws.get_text(&id).await.unwrap(), "through the link");
+}

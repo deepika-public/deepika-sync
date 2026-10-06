@@ -71,10 +71,21 @@ impl Projector {
     pub async fn handle_fs_event(&self, event: &notify::Event) -> Result<()> {
         let root_path = &self.workspace.root.path;
         let relative = |p: &Path| -> Option<String> {
-            p.strip_prefix(root_path)
-                .ok()?
-                .to_str()
-                .map(|s| s.to_string())
+            let inside = p
+                .strip_prefix(root_path)
+                .map(Path::to_path_buf)
+                .or_else(|_| {
+                    // The root is canonical; a path can reach it through a symlink (macOS:
+                    // /var is /private/var). The file itself may be gone: resolve its parent.
+                    let parent = p.parent().ok_or(())?.canonicalize().map_err(|_| ())?;
+                    let name = p.file_name().ok_or(())?;
+                    parent
+                        .join(name)
+                        .strip_prefix(root_path)
+                        .map(Path::to_path_buf)
+                        .map_err(|_| ())
+                });
+            inside.ok()?.to_str().map(|s| s.to_string())
         };
 
         match event.kind {
