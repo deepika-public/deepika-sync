@@ -1,8 +1,14 @@
 # Publier une release
 
-Une release, c'est un tag `vX.Y.Z` sur `main` : la CI construit l'archive Linux x86_64,
-la dépose dans le registre de paquets et crée la page de release. Publier le daemon
-**avant** le plugin, dont le pipeline teste l'intégration contre une archive publiée.
+Une release, c'est un tag `vX.Y.Z` sur `main`. Deux publications en découlent : sur
+**GitLab**, la source, la CI construit l'archive Linux x86_64 (glibc), la dépose dans le
+registre de paquets et crée la page de release ; sur **GitHub**, le miroir
+`github.com/deepika-public/deepika-sync` reçoit le tag, et le workflow
+`.github/workflows/release.yml` construit sur chaque système les archives Linux x86_64 et
+arm64 (musl, statiques) et macOS Apple Silicon et Intel, les teste, puis publie une release
+avec ces quatre archives, `SHA256SUMS` et leurs attestations de provenance. C'est elle que
+le plugin dot-sync installe. Publier le daemon **avant** le plugin, dont le pipeline teste
+l'intégration contre une archive publiée.
 
 ## Prérequis, une fois
 
@@ -12,6 +18,11 @@ la dépose dans le registre de paquets et crée la page de release. Publier le d
 - Les tags `v*` protégés, réservés aux responsables de release.
 - **Settings → CI/CD → Job token permissions** : autoriser le projet
   `deepika-public/deepika-obsidian-toolbox/dot-sync`, dont le pipeline télécharge le daemon.
+- Le miroir vers GitHub (*Settings → Repository → Mirroring repositories*, direction
+  *Push*, `ssh://github.com/deepika-public/deepika-sync.git`, utilisateur `git`, clés d'hôte
+  détectées, authentification par clé SSH) ; sa clé publique en *deploy key* avec accès en
+  écriture du dépôt GitHub. Le miroir ne pousse qu'un tag à la fois : GitHub ne déclenche
+  aucun workflow pour un push de plus de trois tags.
 
 Aucun jeton personnel : le job utilise `CI_JOB_TOKEN`. Rien à compiler sur le poste pour
 publier. Le client web, lui, n'a pas de release : il se redéploie à chaque fusion dans
@@ -40,7 +51,11 @@ publier. Le client web, lui, n'a pas de release : il se redéploie à chaque fus
    (« Source code » n'est pas le binaire). Télécharger l'archive et refaire
    [l'installation](install.md) sur une machine vierge : `sha256sum -c`, `--version`,
    `BUILD.json` avec le bon commit et `"dirty": false`.
-5. Côté plugin, passer sa variable CI `DEEPIKA_SYNC_RELEASE_TAG` à ce tag, puis suivre son
+5. Attendre le workflow GitHub, puis vérifier sur la
+   [release GitHub](https://github.com/deepika-public/deepika-sync/releases) les quatre
+   archives et `SHA256SUMS` ; sur un Mac, installer l'archive macOS et lancer une session.
+6. Côté plugin, passer sa variable CI `DEEPIKA_SYNC_RELEASE_TAG` à ce tag et, si le plugin
+   doit installer cette version, sa constante `DAEMON_RELEASE`, puis suivre son
    [guide de publication](https://gitlab.com/deepika-public/deepika-obsidian-toolbox/dot-sync/-/blob/main/docs/how-to/release.md).
 
 Le packaging refuse un tag qui diverge de `Cargo.toml` et un checkout modifié. Un échec
@@ -49,7 +64,7 @@ existante n'est jamais modifiée : en cas d'erreur, publier la version suivante.
 
 ## Construire l'archive localement
 
-Pour inspecter ce que la CI produit, sous Linux x86_64 avec Rust 1.95+, outils C,
+Pour inspecter ce que la CI GitLab produit, sous Linux x86_64 avec Rust 1.95+, outils C,
 Python 3.11+ et `readelf` (`binutils`) :
 
 ```bash
@@ -61,7 +76,9 @@ python3 scripts/package.py
 L'archive contient le binaire, `README.md`, `docs/` et `BUILD.json` (commit, arbre propre
 ou non, cible, compilateur, glibc minimale, protocoles). Rien n'est envoyé. Les
 métadonnées d'archive sont stabilisées, ce qui ne promet pas des binaires identiques
-d'un environnement à l'autre.
+d'un environnement à l'autre. Une autre plateforme se construit avec
+`python3 scripts/package.py --target <cible>` sur ce système, comme le fait le workflow
+GitHub (`musl-tools` pour les cibles Linux musl).
 
 Références GitLab : [paquets génériques](https://docs.gitlab.com/user/packages/generic_packages/),
 [releases CI](https://docs.gitlab.com/ci/yaml/#release).

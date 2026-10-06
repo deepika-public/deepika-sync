@@ -19,7 +19,7 @@ use tokio::net::TcpListener;
 #[derive(Parser)]
 #[command(
     version,
-    about = "Local-first collaboration daemon for Markdown (Linux)"
+    about = "Local-first collaboration daemon for Markdown (Linux, macOS)"
 )]
 struct Cli {
     #[command(subcommand)]

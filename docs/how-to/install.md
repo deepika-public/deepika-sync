@@ -1,34 +1,46 @@
 # Installer, mettre à jour
 
 Le daemon est un seul exécutable, `deepika-sync`, sans dépendance à installer : SQLite est
-embarqué. Linux x86_64 (glibc 2.34 ou plus) est validé ; macOS ne l'est pas encore, voir
-[compatibilité](../reference/compatibility.md).
+embarqué. Binaires publiés pour Linux x86_64 et arm64 (statiques, toute distribution) et
+macOS Apple Silicon et Intel (expérimental) ; voir les [plateformes](../reference/compatibility.md#plateformes).
 
-Avec Obsidian, le binaire va **dans le dossier du plugin**, qui le trouve tout seul : suivre
-alors le [guide d'installation du plugin](https://gitlab.com/deepika-public/deepika-obsidian-toolbox/dot-sync/-/blob/main/docs/how-to/install.md),
-qui installe les deux d'un coup.
+**Avec Obsidian, rien à faire ici** : le plugin [dot-sync](https://gitlab.com/deepika-public/deepika-obsidian-toolbox/dot-sync/-/blob/main/docs/how-to/install.md)
+installe le daemon d'un clic, dans ses réglages, et vérifie sa somme SHA-256.
 
 ## Depuis la dernière release
 
-Sur la [page des releases](https://gitlab.com/deepika-public/deepika-obsidian-toolbox/deepika-sync/-/releases)
-(il faut avoir accès au projet), télécharger dans un même dossier vide l'archive
-`deepika-sync-<version>-x86_64-unknown-linux-gnu.tar.gz` et `SHA256SUMS`, sans les renommer.
+Sur la [page des releases GitHub](https://github.com/deepika-public/deepika-sync/releases), télécharger dans un même dossier vide `SHA256SUMS` et
+l'archive de sa plateforme, sans la renommer :
+
+| Système | Archive |
+| --- | --- |
+| Linux x86_64 | `deepika-sync-<version>-x86_64-unknown-linux-musl.tar.gz` |
+| Linux arm64 | `deepika-sync-<version>-aarch64-unknown-linux-musl.tar.gz` |
+| macOS Apple Silicon | `deepika-sync-<version>-aarch64-apple-darwin.tar.gz` |
+| macOS Intel | `deepika-sync-<version>-x86_64-apple-darwin.tar.gz` |
+
 Puis, dans un terminal ouvert dans ce dossier :
 
 ```bash
 (
   set -e
-  sha256sum -c SHA256SUMS
-  tar -xzf deepika-sync-*-x86_64-unknown-linux-gnu.tar.gz
+  sha256sum --ignore-missing -c SHA256SUMS      # macOS : shasum -a 256 --ignore-missing -c SHA256SUMS
+  tar -xzf deepika-sync-*.tar.gz
   mkdir -p "$HOME/.local/bin"
-  install -m 755 deepika-sync-*-x86_64-unknown-linux-gnu/deepika-sync "$HOME/.local/bin/deepika-sync"
+  install -m 755 deepika-sync-*/deepika-sync "$HOME/.local/bin/deepika-sync"
   "$HOME/.local/bin/deepika-sync" --version
 )
 ```
 
-Résultat attendu : **OK**, puis `deepika-sync <version>`. Le bloc s'arrête si la vérification
-échoue. Une erreur mentionnant `GLIBC` signifie un système trop ancien : la version requise
-est dans le `BUILD.json` extrait.
+Résultat attendu : **OK** pour l'archive téléchargée, puis `deepika-sync <version>`. Le bloc
+s'arrête si la vérification échoue. Sur macOS, une archive ouverte depuis le navigateur peut
+être bloquée par Gatekeeper (binaire non notarisé) : `xattr -d com.apple.quarantine
+"$HOME/.local/bin/deepika-sync"` la débloque. Chaque archive est aussi attestée :
+`gh attestation verify <archive> --repo deepika-public/deepika-sync` prouve qu'elle a été
+construite par la CI depuis ce dépôt.
+
+La release GitLab garde l'archive Linux x86_64 liée à la glibc
+(`…-x86_64-unknown-linux-gnu.tar.gz`, glibc 2.34 ou plus), utilisée par la CI du plugin.
 
 Si `deepika-sync` n'est pas trouvé ensuite, ajouter `~/.local/bin` au `PATH` :
 

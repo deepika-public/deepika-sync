@@ -30,6 +30,7 @@ existante. Le raisonnement est dans le [journal des décisions](../explanation/d
 
 | Version | Changements | À l'ouverture d'une base antérieure |
 | --- | --- | --- |
+| 0.6.1 | **Binaires pour Linux arm64 et macOS** : release GitHub avec quatre archives (Linux x86_64 et arm64 statiques, macOS Apple Silicon et Intel), `SHA256SUMS` et attestations de provenance, que le plugin dot-sync installe d'un clic. SQLite en `fullfsync` (durabilité réelle sur macOS ; sans effet ailleurs). Protocole inchangé : 0.6.0 et 0.6.1 se parlent | Rien |
 | 0.6.0 | **Nouveau nom** : SyncParty devient deepika-sync (exécutable `deepika-sync`, variable `DEEPIKA_SYNC_LOG`, dépôt `deepika-public/deepika-obsidian-toolbox/deepika-sync`, licence MIT). **Protocole renommé** : ALPN `deepika-sync/yrs/2`, incompatible avec 0.5 ; tous les pairs d'une session doivent passer à 0.6 | Rien : le format de la base ne change pas Client web publié à `https://deepika-public.gitlab.io/deepika-obsidian-toolbox/deepika-sync`. |
 | 0.5.2 | Au démarrage, le daemon rattrape ce qui a changé dans le dossier pendant son arrêt (notes supprimées, éditées, créées, déplacées) | Table `disk_state` créée ; au premier démarrage, un fichier absent est pris pour une suppression |
 | 0.5.1 | Un arrivant voit tout de suite les curseurs des participants déjà présents ; `--exit-with-parent` arrête la session avec le programme qui l'a lancée | Rien |
@@ -39,9 +40,11 @@ existante. Le raisonnement est dans le [journal des décisions](../explanation/d
 
 | Plateforme | État |
 | --- | --- |
-| Linux x86_64 (glibc 2.34+) | Validé : tests, harnais à deux et trois pairs, essai réel à distance par le relais. Seule cible construite par la CI |
-| macOS (Apple Silicon, Intel) | **Non validé.** Rien n'est distribué ; voir les conditions ci-dessous |
-| Windows | Non supporté : permissions et chemins Unix à adapter |
+| Linux x86_64 | Validé : tests, harnais à deux et trois pairs, essai réel à distance par le relais. Binaire statique (musl, release GitHub) et binaire glibc 2.34+ (release GitLab) |
+| Linux arm64 | Binaire statique (musl) ; tests et harnais à deux pairs sur la CI GitHub, sur arm64 |
+| macOS Apple Silicon | **Expérimental.** Tests et harnais à deux pairs sur la CI GitHub ; essais réels en cours, voir ci-dessous |
+| macOS Intel | **Expérimental.** Construit sur Apple Silicon, ni testé ni exécuté par la CI |
+| Windows | Non supporté : permissions, signaux et chemins Unix à adapter |
 
 Ce que réussir un essai macOS demande, au-delà de la compilation :
 
@@ -52,10 +55,12 @@ Ce que réussir un essai macOS demande, au-delà de la compilation :
 2. **Chemins.** APFS existe en variantes sensibles ou non à la casse, et normalise
    parfois l'Unicode : `Note.md` / `note.md` et les formes composées / décomposées doivent
    être détectés d'après le volume réel, sans passer les noms en minuscules.
-3. **Durabilité.** SQLite ne fait pas de `F_FULLFSYNC` par défaut sur macOS ; choisir et
-   tester `fullfsync` avant de promettre la même garantie.
+3. **Durabilité.** SQLite ne fait pas de `F_FULLFSYNC` par défaut sur macOS : depuis 0.6.1,
+   `fullfsync` et `checkpoint_fullfsync` sont activés. Reste à mesurer leur coût.
 4. **Système.** Verrou de session, autorisation « réseau local » pour mDNS, chemins avec
-   espaces, signature ou notarisation à la distribution.
+   espaces. Binaires signés ad hoc, non notarisés : installés par le plugin, ils ne portent
+   pas l'attribut de quarantaine ; téléchargés depuis un navigateur, Gatekeeper les bloque
+   (voir [installer](../how-to/install.md)).
 5. **Essais.** Linux ↔ macOS et macOS ↔ macOS sur la [matrice de connexion](join-behavior.md),
    hors ligne, plantage, curseurs, collisions de noms.
 

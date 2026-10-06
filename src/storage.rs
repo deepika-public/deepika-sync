@@ -68,6 +68,8 @@ impl Storage {
         db.execute_batch(
             "PRAGMA journal_mode=WAL;
              PRAGMA synchronous=FULL;
+             PRAGMA fullfsync=ON;
+             PRAGMA checkpoint_fullfsync=ON;
              PRAGMA temp_store=MEMORY;
              PRAGMA foreign_keys=ON;
              PRAGMA trusted_schema=OFF;

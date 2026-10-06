@@ -14,17 +14,17 @@ Les éditeurs s'y branchent par deux standards, et ne parlent jamais aux pairs :
 
 ## Installer
 
-Télécharger l'archive Linux x86_64 de la [dernière release](https://gitlab.com/deepika-public/deepika-obsidian-toolbox/deepika-sync/-/releases)
-et son `SHA256SUMS` dans un même dossier, puis :
+Avec Obsidian, le plugin dot-sync installe le daemon d'un clic, dans ses réglages.
+Sinon, télécharger l'archive de sa plateforme (Linux x86_64 ou arm64, macOS Apple Silicon
+ou Intel) de la [dernière release](https://github.com/deepika-public/deepika-sync/releases) et `SHA256SUMS` dans un même dossier, puis :
 
 ```bash
-sha256sum -c SHA256SUMS && tar -xzf deepika-sync-*-x86_64-unknown-linux-gnu.tar.gz
+sha256sum --ignore-missing -c SHA256SUMS && tar -xzf deepika-sync-*.tar.gz
 install -m 755 deepika-sync-*/deepika-sync ~/.local/bin/deepika-sync && deepika-sync --version
 ```
 
-Depuis les sources : `cargo install --locked --path .` (Rust 1.95+). Le détail, dont la
-mise à jour, est dans [installer](docs/how-to/install.md). Avec Obsidian, le plugin
-installe les deux d'un coup.
+Depuis les sources : `cargo install --locked --path .` (Rust 1.95+). Le détail, dont macOS
+et la mise à jour, est dans [installer](docs/how-to/install.md).
 
 ## Utiliser
 
@@ -44,7 +44,7 @@ Une invitation donne accès à tout le dossier, en écriture : l'envoyer en priv
 - Deux notes de même nom créées chacune de son côté ne sont jamais fusionnées ni écrasées :
   les deux versions restent, côte à côte.
 - Ce qui change dans le dossier pendant que le daemon est arrêté est rattrapé au démarrage.
-- Seuls les fichiers `.md` sont suivis. Linux x86_64 est validé ; macOS ne l'est pas encore.
+- Seuls les fichiers `.md` sont suivis. Linux est validé ; macOS est expérimental (construit et testé par la CI, essais réels en cours) ; Windows n'est pas encore pris en charge.
   Pas de droits fins : une invitation vaut pour toute la session, sans révocation.
 
 ## Documentation
