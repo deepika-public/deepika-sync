@@ -1,0 +1,23 @@
+@import "tailwindcss";
+@source "../index.html";
+@source "./main.js";
+
+@theme {
+  --font-sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "JetBrains Mono", ui-monospace, "SF Mono", Menlo, monospace;
+}
+
+/* What the page shows follows its state, set on <body> by main.js. */
+body:not([data-view="ask"]) #ask,
+body:not([data-view="session"]) #session,
+body:not([data-view="loading"]) #loading { display: none; }
+body:not([data-open]) #note,
+body[data-open] #empty { display: none; }
+
+#state[data-kind="busy"] .dot { @apply animate-pulse bg-amber-400; }
+#state[data-kind="ok"] .dot { @apply bg-emerald-500; }
+#state[data-kind="error"] .dot { @apply bg-rose-500; }
+#state[data-kind="error"] { @apply border-rose-200 bg-rose-50 text-rose-700 dark:border-rose-900 dark:bg-rose-950 dark:text-rose-300; }
+
+/* The editor's own look lives in main.js (SHEET); only the remote name tag is ours here. */
+.cm-ySelectionInfo { @apply rounded px-1 py-0.5 font-sans text-[11px] font-medium opacity-100; top: -1.5em; }

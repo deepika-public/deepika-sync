@@ -1,0 +1,22 @@
+{
+  "name": "deepika-sync-web",
+  "private": true,
+  "author": "Clément OLIVIER <clement.olivier@deepika.ai>",
+  "type": "module",
+  "scripts": {
+    "build": "esbuild app/main.js --bundle --format=esm --target=es2022 --outfile=dist/app.js --external:../pkg/deepika_sync_web.js && tailwindcss -i app/style.css -o dist/app.css --minify",
+    "serve": "python3 -m http.server 8765 --bind 127.0.0.1"
+  },
+  "dependencies": {
+    "@codemirror/lang-markdown": "^6.3.0",
+    "codemirror": "^6.0.1",
+    "y-codemirror.next": "^0.3.5",
+    "y-protocols": "^1.0.6",
+    "yjs": "^13.6.0"
+  },
+  "devDependencies": {
+    "@tailwindcss/cli": "^4.3.3",
+    "esbuild": "^0.28.0",
+    "tailwindcss": "^4.3.3"
+  }
+}

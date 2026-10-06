@@ -1,0 +1,10 @@
+/target/
+*.log
+/dist/
+# The browser client lives on its own branch for now; its build output must never be committed.
+/web/target/
+/web/pkg/
+/web/dist/
+/web/node_modules/
+/public/
+/.cargo/

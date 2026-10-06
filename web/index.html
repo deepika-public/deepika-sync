@@ -1,0 +1,69 @@
+<!doctype html>
+<html lang="fr" class="h-full">
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>deepika-sync — édition collaborative</title>
+<link rel="stylesheet" href="./dist/app.css">
+<body data-view="loading" class="flex h-full flex-col bg-zinc-50 font-sans text-zinc-900 antialiased dark:bg-zinc-950 dark:text-zinc-100">
+
+<header class="flex h-14 shrink-0 items-center gap-3 border-b border-zinc-200 bg-white/80 px-4 backdrop-blur dark:border-zinc-800 dark:bg-zinc-900/80">
+  <div class="flex items-center gap-2">
+    <span class="grid size-7 place-items-center rounded-lg bg-indigo-600 text-sm font-semibold text-white shadow-sm">S</span>
+    <span class="text-[15px] font-semibold tracking-tight">deepika-sync</span>
+  </div>
+  <div id="state" data-kind="busy" class="ml-2 flex min-w-0 items-center gap-2 rounded-full border border-zinc-200 bg-zinc-50 px-3 py-1 text-xs text-zinc-600 dark:border-zinc-800 dark:bg-zinc-900 dark:text-zinc-400">
+    <span class="dot size-2 shrink-0 rounded-full"></span><span id="state-text" class="truncate">Démarrage…</span>
+  </div>
+  <label class="ml-auto flex items-center gap-2 text-xs text-zinc-500 dark:text-zinc-400">
+    <span class="hidden sm:inline">Votre nom</span>
+    <input id="name" class="w-36 rounded-lg border border-zinc-200 bg-white px-2.5 py-1.5 text-sm text-zinc-900 shadow-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-900 dark:text-zinc-100">
+  </label>
+</header>
+
+<!-- No invitation in the address: ask for one. -->
+  <form id="ask" class="m-auto w-full max-w-lg p-6">
+    <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm dark:border-zinc-800 dark:bg-zinc-900">
+      <h1 class="text-lg font-semibold tracking-tight">Rejoindre une session</h1>
+      <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Collez l'invitation reçue, ou le lien complet. Elle reste dans votre navigateur : elle n'est jamais envoyée au serveur de cette page.</p>
+      <textarea id="invitation" rows="5" required placeholder="eyJ2ZXJzaW9uIjox…" class="mt-4 w-full resize-y rounded-xl border border-zinc-200 bg-zinc-50 p-3 font-mono text-xs outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-950"></textarea>
+      <button class="mt-4 w-full rounded-xl bg-indigo-600 px-4 py-2.5 text-sm font-medium text-white shadow-sm transition hover:bg-indigo-500 focus:outline-none focus:ring-2 focus:ring-indigo-500/40">Rejoindre</button>
+    </div>
+  </form>
+
+<div id="loading" class="m-auto flex flex-col items-center gap-3 text-sm text-zinc-500 dark:text-zinc-400">
+  <span class="size-6 animate-spin rounded-full border-2 border-zinc-300 border-t-indigo-600 dark:border-zinc-700 dark:border-t-indigo-400"></span>
+  Connexion à la session…
+</div>
+
+<div id="session" class="flex min-h-0 flex-1">
+  <nav class="flex w-72 shrink-0 flex-col border-r border-zinc-200 bg-white dark:border-zinc-800 dark:bg-zinc-900 max-sm:w-56">
+    <div id="tools" class="flex items-center gap-2 p-3">
+      <input id="filter" type="search" placeholder="Filtrer…" class="min-w-0 flex-1 rounded-lg border border-zinc-200 bg-zinc-50 px-2.5 py-1.5 text-sm outline-none transition focus:border-indigo-500 focus:ring-2 focus:ring-indigo-500/20 dark:border-zinc-700 dark:bg-zinc-950">
+      <button id="new" title="Nouvelle note" class="grid size-8 shrink-0 place-items-center rounded-lg bg-indigo-600 text-lg leading-none text-white shadow-sm transition hover:bg-indigo-500">+</button>
+    </div>
+    <div class="px-4 pb-1 text-[11px] font-medium uppercase tracking-wider text-zinc-400" id="count"></div>
+    <ul id="notes" class="min-h-0 flex-1 overflow-y-auto px-2 pb-3"></ul>
+  </nav>
+
+  <main class="flex min-w-0 flex-1 flex-col">
+    <div id="empty" class="m-auto max-w-sm p-8 text-center">
+      <div class="mx-auto grid size-12 place-items-center rounded-2xl bg-indigo-50 text-2xl dark:bg-indigo-950">📝</div>
+      <p id="title-empty" class="mt-4 text-sm font-medium">Choisissez une note</p>
+      <p class="mt-1 text-sm text-zinc-500 dark:text-zinc-400">Ce que vous écrivez arrive en direct chez les autres participants, et dans les fichiers de l'hôte.</p>
+    </div>
+    <div id="note" class="flex min-h-0 flex-1 flex-col">
+      <div class="flex h-12 shrink-0 items-center gap-3 border-b border-zinc-200 px-5 dark:border-zinc-800">
+        <div id="title" class="min-w-0 flex-1 truncate text-sm font-medium"></div>
+        <div id="people" class="flex items-center -space-x-1.5"></div>
+        <span id="actions" class="flex items-center gap-1">
+          <button id="rename" class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-zinc-600 transition hover:bg-zinc-100 dark:text-zinc-300 dark:hover:bg-zinc-800">Renommer</button>
+          <button id="delete" class="rounded-lg px-2.5 py-1.5 text-xs font-medium text-rose-600 transition hover:bg-rose-50 dark:text-rose-400 dark:hover:bg-rose-950">Supprimer</button>
+        </span>
+      </div>
+      <div id="editor" class="min-h-0 flex-1 overflow-auto bg-white dark:bg-zinc-900"></div>
+    </div>
+  </main>
+</div>
+<script type="module" src="./dist/app.js"></script>
+</body>
+</html>
